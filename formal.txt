@@ -1,3 +1,17 @@
+document := metadata? technique?
+
+metadata := version_line spdx_line? template_line?
+
+version_line := "%" "technique" "v1" NEWLINE
+
+spdx_line := "!" license copyright? NEWLINE
+license := [a-zA-Z0-9.,-_ ()[]]+
+copyright := ";" ("©" | "(c)" | "(C)") ANY NEWLINE
+
+template_line := "&" [a-zA-Z0-9.,-]+ NEWLINE
+
+technique := scope+ | procedure+
+
 procedure :=
     procedure_declaration
     procedure_title?
@@ -71,7 +85,7 @@ uncertainty := ("±" | "+/-") [0-9]+([.][0-9]+)?
 magnitude := "x" "10^" [0-9]+ | "×" "10" [⁰⁻⁹]
 symbol := [a-zA-Z/°]+
 
-scope := step_block | code_block | attribute_block
+scope := step_block | code_block | attribute_block | section_chunk
 
 step_block := dependent_step | parallel_step
 
@@ -104,6 +118,8 @@ tablet := "[" pair (NEWLINE pair)* "]"
 pair := label "=" expression
 
 label := "\"" ANY "\""
+
+section_chunk := [IVX]+[.] descriptive* scope?
 
 NEWLINE := "\n"
 

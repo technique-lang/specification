@@ -1,0 +1,21 @@
+declaration := identifier parameters? ":" signature? NEWLINE
+
+identifier := [a-z][a-z0-9_]*
+
+parameters := "(" variable ("," variable)* ")"
+variable := identifier
+
+signature := genus "->" genus 
+
+genus := unit_genus | simple_genus | list_genus | tuple_genus | naked_genus
+unit_genus := "()"
+simple_genus := forma
+list_genus := "[" forma "]"
+tuple_genus := "(" forma ("," forma)+ ")"
+naked_genus := forma ("," forma)+
+
+forma := [A-Z][a-zA-Z0-9_]*
+
+NEWLINE := "\n"
+
+SPACE := " " | "\t" | "\n"

@@ -1,4 +1,10 @@
-declaration := identifier parameters? ":" signature? NEWLINE
+procedure :=
+    procedure_declaration
+    procedure_title?
+    procedure_description?
+    scope*
+
+procedure_declaration := identifier parameters? ":" signature? NEWLINE
 
 identifier := [a-z][a-z0-9_]*
 
@@ -15,6 +21,47 @@ tuple_genus := "(" forma ("," forma)+ ")"
 naked_genus := forma ("," forma)+
 
 forma := [A-Z][a-zA-Z0-9_]*
+
+procedure_title := "#" heading
+
+procedure_description := paragraph+
+
+paragraph := descriptive+ NEWLINE
+
+descriptive := text | code_inline
+
+text := .+
+
+code_inline := "{" expression "}"
+
+expression :=
+    variable |
+    string_literal |
+    numeric_literal |
+    invocation_call |
+    function_call
+
+invocation_call := "<" invocation_target ">" ("(" arguments? ")")?
+
+invocation_target := local_target | external_target
+local_target := identifier
+external_target := "https://" [a-zA-Z0-9.,?&#%=:/-_]+
+
+function_call := function_name "(" arguments? ")"
+function_name := identifier
+
+arguments := expression ("," expression)*
+
+string_literal := "\"" .+ "\""
+
+numeric_literal := integral | quantity
+integral := [0-9]+
+
+quantity := mantissa uncertainty? magnitude? symbol
+mantissa := [0-9]+([.][0-9]+)?
+uncertainty := ("±" | "+/-") [0-9]+([.][0-9]+)?
+magnitude := "x" "10^" [0-9]+ | "×" "10" [⁰⁻⁹]
+symbol := [a-zA-Z]+
 
 NEWLINE := "\n"
 

@@ -63,7 +63,7 @@ quantity := mantissa uncertainty? magnitude? symbol
 mantissa := [0-9]+([.][0-9]+)?
 uncertainty := ("±" | "+/-") [0-9]+([.][0-9]+)?
 magnitude := "x" "10^" [0-9]+ | "×" "10" [⁰⁻⁹]
-symbol := [a-zA-Z]+
+symbol := [a-zA-Z/°]+
 
 scope := step_block | code_block | attribute_block
 
@@ -73,17 +73,25 @@ dependent_step := [1-9][0-9]*[.][ ] step_content
 
 parallel_step := [-][ ] step_content
 
-step_content := descriptive+ (dependent_substep+ | parallel_substep+)?
+step_content := descriptive+ (dependent_substep+ | parallel_substep+ | scope)?
 
 dependent_substep := [a-hj-km-uwyz][.] substep_content
 
 parallel_substep := [-][ ] substep_content
 
-substep_content := descriptive+ (dependent_subsubstep+ | parallel_subsubstep+)?
+substep_content := descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | scope)?
 
-dependent_subsubstep := [ivxl]+[.] step_content
+dependent_subsubstep := [ivxl]+[.] subsubstep_content
  
-parallel_subsubstep := [-][ ] substep_content
+parallel_subsubstep := [-][ ] subsubstep_content
+
+subsubstep_content := descriptive+ scope?
+
+code_block := "{" expression+ "}"
+
+attribute_block := role_attribute | place_attribute
+role_attribute := "@" identifier ("+" "@" identifier)*
+place_attribute := "#" identifier
 
 NEWLINE := "\n"
 

@@ -24,6 +24,8 @@ forma := [A-Z][a-zA-Z0-9_]*
 
 procedure_title := "#" heading
 
+heading := .+
+
 procedure_description := paragraph+
 
 paragraph := descriptive+ NEWLINE
@@ -62,6 +64,26 @@ mantissa := [0-9]+([.][0-9]+)?
 uncertainty := ("±" | "+/-") [0-9]+([.][0-9]+)?
 magnitude := "x" "10^" [0-9]+ | "×" "10" [⁰⁻⁹]
 symbol := [a-zA-Z]+
+
+scope := step_block | code_block | attribute_block
+
+step_block := dependent_step | parallel_step
+
+dependent_step := [1-9][0-9]*[.][ ] step_content
+
+parallel_step := [-][ ] step_content
+
+step_content := descriptive+ (dependent_substep+ | parallel_substep+)?
+
+dependent_substep := [a-hj-km-uwyz][.] substep_content
+
+parallel_substep := [-][ ] substep_content
+
+substep_content := descriptive+ (dependent_subsubstep+ | parallel_subsubstep+)?
+
+dependent_subsubstep := [ivxl]+[.] step_content
+ 
+parallel_subsubstep := [-][ ] substep_content
 
 NEWLINE := "\n"
 

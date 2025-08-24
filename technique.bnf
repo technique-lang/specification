@@ -1,8 +1,35 @@
-document := metadata? technique?
+; A grammar for the Technique procedures language. This is intended to be as
+; comprehensive as possible, but there are some flexibilties that the
+; reference parser admits that are not necessarily described here.
+;
+; This is written in the style of a Backus–Naur Form with a few augmentations.
+; When specified character classes are in the style of those accepted by
+; regular expressions (though characters that are special are not escaped
+; here).
+;
+; the convention adopted here is that names that represent actual types in the
+; abstract syntax tree are in Proper Case whereas other definitions (often
+; representing variants in enumerations in the implementation) are written in
+; snake_case.
 
-metadata := version_line spdx_line? template_line?
+NEWLINE := "\n" | "\r\n"
 
-version_line := "%" "technique" "v1" NEWLINE
+; arbitrary whitespace is allowed betwen most tokens.
+SPACE := " " | "\t" | "\n"
+
+; specially defined as any characters but matching lazily, such that whatever
+; token or pattern that follows is excluded.
+ANY
+
+; A document or file has an optional metadata header, followed by a technique.
+Document := Metadata? Technique?
+
+; If present, the document metadata are the magic bytes, followed by an
+; optional statement of license and copyright, and an optional indication of
+; what template is intended for rendering this technique.
+Metadata := magic_line spdx_line? template_line?
+
+magic_line := "%" "technique" "v1" NEWLINE
 
 spdx_line := "!" license copyright? NEWLINE
 license := [a-zA-Z0-9.,-_ ()[]]+
@@ -10,65 +37,68 @@ copyright := ";" ("©" | "(c)" | "(C)") ANY NEWLINE
 
 template_line := "&" [a-zA-Z0-9.,-]+ NEWLINE
 
-technique := scope+ | procedure+
+; a technique is either a series of steps, or a procedure (which of course
+; can contain steps).
+Technique := Scope+ | Procedure+
 
-procedure :=
+Procedure :=
     procedure_declaration
     procedure_title?
     procedure_description?
-    scope*
+    Scope*
 
-procedure_declaration := identifier parameters? ":" signature? NEWLINE
+procedure_declaration := Identifier parameters? ":" signature? NEWLINE
 
-identifier := [a-z][a-z0-9_]*
+Identifier := [a-z][a-z0-9_]*
 
 parameters := "(" variable ("," variable)* ")"
-variable := identifier
+variable := Identifier
 
-signature := genus "->" genus 
+signature := Genus "->" Genus
 
-genus := unit_genus | simple_genus | list_genus | tuple_genus | naked_genus
+Genus := unit_genus | simple_genus | list_genus | tuple_genus | naked_genus
 unit_genus := "()"
-simple_genus := forma
-list_genus := "[" forma "]"
-tuple_genus := "(" forma ("," forma)+ ")"
-naked_genus := forma ("," forma)+
+simple_genus := Forma
+list_genus := "[" Forma "]"
+tuple_genus := "(" Forma ("," Forma)+ ")"
+naked_genus := Forma ("," Forma)+
 
-forma := [A-Z][a-zA-Z0-9_]*
+Forma := [A-Z][a-zA-Z0-9_]*
 
 procedure_title := "#" heading
 
 heading := ANY NEWLINE
 
-procedure_description := paragraph+
+procedure_description := Paragraph+
 
-paragraph := descriptive+ NEWLINE
+Paragraph := Descriptive+ NEWLINE
 
-descriptive := text | code_inline
+Descriptive := text | code_inline
 
 text := ANY
 
-code_inline := "{" expression "}"
+code_inline := "{" Expression "}"
 
-expression :=
+Expression :=
     variable |
     string_literal |
     multiline_literal |
     numeric_literal |
-    invocation_call |
-    function_call |
+    Invocation |
+    Application |
     tablet
 
-invocation_call := "<" invocation_target ">" ("(" arguments? ")")?
+Invocation := "<" invocation_target ">" ("(" arguments? ")")?
 
 invocation_target := local_target | external_target
-local_target := identifier
+local_target := Identifier
 external_target := "https://" [a-zA-Z0-9.,?&#%=:/-_]+
 
-function_call := function_name "(" arguments? ")"
-function_name := identifier
+; a function call
+Application := function_name "(" arguments? ")"
+function_name := Identifier
 
-arguments := expression ("," expression)*
+arguments := Expression ("," Expression)*
 
 string_literal := "\"" ANY "\""
 
@@ -76,53 +106,51 @@ multiline_literal := "```" language? ANY "```"
 
 language := [a-z]+
 
-numeric_literal := integral | quantity
+numeric_literal := integral | Quantity
 integral := [0-9]+
 
-quantity := mantissa uncertainty? magnitude? symbol
+Quantity := mantissa uncertainty? magnitude? symbol
 mantissa := [0-9]+([.][0-9]+)?
 uncertainty := ("±" | "+/-") [0-9]+([.][0-9]+)?
 magnitude := "x" "10^" [0-9]+ | "×" "10" [⁰⁻⁹]
 symbol := [a-zA-Z/°]+
 
-scope := step_block | code_block | attribute_block | section_chunk
+Scope := step_block | code_block | Attribute | section_chunk
 
-step_block := dependent_step | parallel_step
+step_block := dependent_step+ | parallel_step+
 
 dependent_step := [1-9][0-9]*[.][ ] step_content
 
 parallel_step := [-][ ] step_content
 
-step_content := descriptive+ (dependent_substep+ | parallel_substep+ | scope)?
+step_content := Descriptive+ (dependent_substep+ | parallel_substep+ | Scope)?
 
 dependent_substep := [a-hj-km-uwyz][.] substep_content
 
 parallel_substep := [-][ ] substep_content
 
-substep_content := descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | scope)?
+substep_content := Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
 
 dependent_subsubstep := [ivxl]+[.] subsubstep_content
  
 parallel_subsubstep := [-][ ] subsubstep_content
 
-subsubstep_content := descriptive+ scope?
+subsubstep_content := Descriptive+ Scope?
 
-code_block := "{" expression+ "}"
+; a code block is effectively the same as a code inline; both escape from the
+; textual language to being able to write expressions
+code_block := "{" NEWLINE Expression+ NEWLINE "}"
 
-attribute_block := role_attribute | place_attribute
-role_attribute := "@" identifier ("+" "@" identifier)*
-place_attribute := "#" identifier
+Attribute := role_attribute | place_attribute
+role_attribute := "@" Identifier ("+" "@" Identifier)*
+place_attribute := "#" Identifier
 
-tablet := "[" pair (NEWLINE pair)* "]"
+tablet := "[" Pair (NEWLINE Pair)* "]"
 
-pair := label "=" expression
+Pair := Label "=" Expression
 
-label := "\"" ANY "\""
+Label := "\"" ANY "\""
 
-section_chunk := [IVX]+[.] descriptive* scope?
-
-NEWLINE := "\n"
-
-SPACE := " " | "\t" | "\n"
-
-ANY ; specially defined as any characters but matching lazily so that whatever token follows is excluded
+; last but not least, procedures can be grouped into sections, marked with
+; capital roman numerals.
+section_chunk := [IVX]+[.] Descriptive* Scope?

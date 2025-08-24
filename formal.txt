@@ -24,7 +24,7 @@ forma := [A-Z][a-zA-Z0-9_]*
 
 procedure_title := "#" heading
 
-heading := .+
+heading := ANY NEWLINE
 
 procedure_description := paragraph+
 
@@ -32,16 +32,18 @@ paragraph := descriptive+ NEWLINE
 
 descriptive := text | code_inline
 
-text := .+
+text := ANY
 
 code_inline := "{" expression "}"
 
 expression :=
     variable |
     string_literal |
+    multiline_literal |
     numeric_literal |
     invocation_call |
-    function_call
+    function_call |
+    tablet
 
 invocation_call := "<" invocation_target ">" ("(" arguments? ")")?
 
@@ -54,7 +56,11 @@ function_name := identifier
 
 arguments := expression ("," expression)*
 
-string_literal := "\"" .+ "\""
+string_literal := "\"" ANY "\""
+
+multiline_literal := "```" language? ANY "```"
+
+language := [a-z]+
 
 numeric_literal := integral | quantity
 integral := [0-9]+
@@ -93,6 +99,14 @@ attribute_block := role_attribute | place_attribute
 role_attribute := "@" identifier ("+" "@" identifier)*
 place_attribute := "#" identifier
 
+tablet := "[" pair (NEWLINE pair)* "]"
+
+pair := label "=" expression
+
+label := "\"" ANY "\""
+
 NEWLINE := "\n"
 
 SPACE := " " | "\t" | "\n"
+
+ANY ; specially defined as any characters but matching lazily so that whatever token follows is excluded

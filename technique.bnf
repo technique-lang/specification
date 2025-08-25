@@ -73,11 +73,11 @@ procedure_description := Paragraph+
 
 Paragraph := Descriptive+ NEWLINE
 
-Descriptive := ANY | code_inline | Binding
+Descriptive := ANY | code_inline | descriptive_binding
 
 code_inline := "{" Expression "}"
 
-Binding := Descriptive "~" identifiers
+descriptive_binding := Descriptive "~" identifiers
 
 identifiers := Identifier | "(" Identifier ("," Identifier)* ")"
 
@@ -88,6 +88,9 @@ Expression :=
     numeric_literal |
     Invocation |
     Application |
+    foreach_keyword |
+    repeat_keyword |
+    expression_binding |
     tablet
 
 Invocation := "<" invocation_target ">" ("(" arguments? ")")?
@@ -101,6 +104,12 @@ Application := function_name "(" arguments? ")"
 function_name := Identifier
 
 arguments := Expression ("," Expression)*
+
+foreach_keyword := "foreach" identifiers "in" arguments
+
+repeat_keyword := "repeat" expression
+
+expression_binding := Expression "~" identifiers
 
 string_literal := "\"" ANY "\""
 
@@ -153,7 +162,7 @@ role_attribute := "@" Identifier ("+" "@" Identifier)*
 place_attribute := "#" Identifier
 
 response_block := Response ("|" Response)*
-Response := "'" reponse_value "'" response_condition?
+Response := "'" response_value "'" response_condition?
 response_value := ANY
 response_condition :=  ANY
 

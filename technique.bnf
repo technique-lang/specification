@@ -105,13 +105,16 @@ function_name := Identifier
 
 arguments := Expression ("," Expression)*
 
-foreach_keyword := "foreach" identifiers "in" arguments
+foreach_keyword := "foreach" identifiers "in" Expression
 
-repeat_keyword := "repeat" expression
+repeat_keyword := "repeat" Expression
 
 expression_binding := Expression "~" identifiers
 
-string_literal := "\"" ANY "\""
+string_literal := "\"" string_content* "\""
+string_content := plain_text | interpolation
+plain_text := ANY
+interpolation := "{" Expression "}"
 
 ; multiline strings preserve internal structure and whitespace
 multiline_literal := "```" language? NEWLINE multiline_content "```"
@@ -139,19 +142,13 @@ dependent_step := [1-9][0-9]*[.][ ] Descriptive+ (dependent_substep+ | parallel_
 ; not indentation sensitive).
 parallel_step := [-][ ] Descriptive+ (dependent_substep+ | code_block | Attribute )?
 
-step_content := Descriptive+ (dependent_substep+ | parallel_substep+ | Scope)?
+dependent_substep := [a-hj-km-uwyz][.][ ] Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
 
-dependent_substep := [a-hj-km-uwyz][.] Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
+parallel_substep := [-][ ] Descriptive+ (dependent_substep+ | dependent_subsubstep+ | Scope)?
 
-parallel_substep := [-][ ] dependent_substep_content
+dependent_subsubstep := [ivxl]+[.][ ] Descriptive+ | Scope?
 
-dependent_substep_content := Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
-
-substep_content := Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
-
-dependent_subsubstep := [ivxl]+[.] Descriptive+ | Scope?
- 
-parallel_subsubstep := [-][ ] Descriptive+
+parallel_subsubstep := [-][ ] Descriptive+ | Scope?
 
 ; a code block is effectively the same as a code inline; both escape from the
 ; textual language to being able to write expressions
@@ -174,4 +171,4 @@ Label := "\"" ANY "\""
 
 ; last but not least, procedures can be grouped into sections, marked with
 ; capital roman numerals.
-section_chunk := [IVX]+[.] Descriptive* Scope?
+section_chunk := [IVX]+[.][ ] Descriptive* (Procedure+ | Scope+)?

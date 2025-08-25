@@ -1,23 +1,24 @@
-; A grammar for the Technique procedures language. This is intended to be as
-; comprehensive as possible, but there are some flexibilties that the
-; reference parser admits that are not necessarily described here.
+; A grammar for the Technique procedures language. While intended to be as
+; comprehensive as possible, there are some flexibilties that the reference
+; parser admits that are not necessarily perfectly described here.
 ;
 ; This is written in the style of a Backus–Naur Form with a few augmentations.
-; When specified character classes are in the style of those accepted by
-; regular expressions (though characters that are special are not escaped
-; here).
+; When specified, character classes are in the style of those accepted by
+; regular expressions, such as [a-z]. Explicitly required characters such as
+; spaces are marked with [ ]; a [.] represents a period and not any character.
+; Otherwise special characters in regular expressions are not shown escaped.
 ;
-; the convention adopted here is that names that represent actual types in the
+; The convention adopted here is that names that represent actual types in the
 ; abstract syntax tree are in Proper Case whereas other definitions (often
 ; representing variants in enumerations in the implementation) are written in
 ; snake_case.
 
 NEWLINE := "\n" | "\r\n"
 
-; arbitrary whitespace is allowed betwen most tokens.
+; Arbitrary whitespace is allowed between most tokens.
 SPACE := " " | "\t" | "\n"
 
-; specially defined as any characters but matching lazily, such that whatever
+; Specially defined as any characters but matching lazily, such that whatever
 ; token or pattern that follows is excluded.
 ANY
 
@@ -37,8 +38,8 @@ copyright := ";" ("©" | "(c)" | "(C)") ANY NEWLINE
 
 template_line := "&" [a-zA-Z0-9.,-]+ NEWLINE
 
-; a technique is either a series of steps, or a procedure (which of course
-; can contain steps).
+; A technique is either a series of steps, or a procedure (which of course
+; can and usually does contain steps).
 Technique := Scope+ | Procedure+
 
 Procedure :=
@@ -99,7 +100,7 @@ invocation_target := local_target | external_target
 local_target := Identifier
 external_target := "https://" [a-zA-Z0-9.,?&#%=:/-_]+
 
-; a function call
+; A function call, usually to a built-in.
 Application := function_name "(" arguments? ")"
 function_name := Identifier
 
@@ -116,7 +117,7 @@ string_content := plain_text | interpolation
 plain_text := ANY
 interpolation := "{" Expression "}"
 
-; multiline strings preserve internal structure and whitespace
+; Multiline strings preserve internal structure and whitespace.
 multiline_literal := "```" language? NEWLINE multiline_content "```"
 multiline_content := ANY NEWLINE
 
@@ -137,7 +138,7 @@ step_block := dependent_step+ | parallel_step+
 
 dependent_step := [1-9][0-9]*[.][ ] Descriptive+ (dependent_substep+ | parallel_substep+)?
 
-; parallel substeps can not nest within parallel steps because there is no way
+; Parallel substeps can not nest within parallel steps because there is no way
 ; for a parser to differentiate between the two levels (given the language is
 ; not indentation sensitive).
 parallel_step := [-][ ] Descriptive+ (dependent_substep+ | code_block | Attribute )?
@@ -150,8 +151,8 @@ dependent_subsubstep := [ivxl]+[.][ ] Descriptive+ | Scope?
 
 parallel_subsubstep := [-][ ] Descriptive+ | Scope?
 
-; a code block is effectively the same as a code inline; both escape from the
-; textual language to being able to write expressions
+; A code block is effectively the same as a code inline; both escape from the
+; textual language to being able to write expressions.
 code_block := "{" NEWLINE Expression+ NEWLINE "}"
 
 Attribute := role_attribute | place_attribute
@@ -169,6 +170,6 @@ Pair := Label "=" Expression
 
 Label := "\"" ANY "\""
 
-; last but not least, procedures can be grouped into sections, marked with
+; Last but not least, procedures can be grouped into sections, marked with
 ; capital roman numerals.
 section_chunk := [IVX]+[.][ ] Descriptive* (Procedure+ | Scope+)?

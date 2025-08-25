@@ -73,11 +73,13 @@ procedure_description := Paragraph+
 
 Paragraph := Descriptive+ NEWLINE
 
-Descriptive := text | code_inline
-
-text := ANY
+Descriptive := ANY | code_inline | Binding
 
 code_inline := "{" Expression "}"
+
+Binding := Descriptive "~" identifiers
+
+identifiers := Identifier | "(" Identifier ("," Identifier)* ")"
 
 Expression :=
     variable |
@@ -102,7 +104,9 @@ arguments := Expression ("," Expression)*
 
 string_literal := "\"" ANY "\""
 
-multiline_literal := "```" language? ANY "```"
+; multiline strings preserve internal structure and whitespace
+multiline_literal := "```" language? NEWLINE multiline_content "```"
+multiline_content := ANY NEWLINE
 
 language := [a-z]+
 
@@ -115,27 +119,30 @@ uncertainty := ("±" | "+/-") [0-9]+([.][0-9]+)?
 magnitude := "x" "10^" [0-9]+ | "×" "10" [⁰⁻⁹]
 symbol := [a-zA-Z/°]+
 
-Scope := step_block | code_block | Attribute | section_chunk
+Scope := step_block | code_block | Attribute | section_chunk | response_block
 
 step_block := dependent_step+ | parallel_step+
 
-dependent_step := [1-9][0-9]*[.][ ] step_content
+dependent_step := [1-9][0-9]*[.][ ] Descriptive+ (dependent_substep+ | parallel_substep+)?
 
-parallel_step := [-][ ] step_content
+; parallel substeps can not nest within parallel steps because there is no way
+; for a parser to differentiate between the two levels (given the language is
+; not indentation sensitive).
+parallel_step := [-][ ] Descriptive+ (dependent_substep+ | code_block | Attribute )?
 
 step_content := Descriptive+ (dependent_substep+ | parallel_substep+ | Scope)?
 
-dependent_substep := [a-hj-km-uwyz][.] substep_content
+dependent_substep := [a-hj-km-uwyz][.] Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
 
-parallel_substep := [-][ ] substep_content
+parallel_substep := [-][ ] dependent_substep_content
+
+dependent_substep_content := Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
 
 substep_content := Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
 
-dependent_subsubstep := [ivxl]+[.] subsubstep_content
+dependent_subsubstep := [ivxl]+[.] Descriptive+ | Scope?
  
-parallel_subsubstep := [-][ ] subsubstep_content
-
-subsubstep_content := Descriptive+ Scope?
+parallel_subsubstep := [-][ ] Descriptive+
 
 ; a code block is effectively the same as a code inline; both escape from the
 ; textual language to being able to write expressions
@@ -144,6 +151,11 @@ code_block := "{" NEWLINE Expression+ NEWLINE "}"
 Attribute := role_attribute | place_attribute
 role_attribute := "@" Identifier ("+" "@" Identifier)*
 place_attribute := "#" Identifier
+
+response_block := Response ("|" Response)*
+Response := "'" reponse_value "'" response_condition?
+response_value := ANY
+response_condition :=  ANY
 
 tablet := "[" Pair (NEWLINE Pair)* "]"
 

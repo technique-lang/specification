@@ -155,9 +155,12 @@ parallel_subsubstep := [-][ ] Descriptive+ | Scope?
 ; textual language to being able to write expressions.
 code_block := "{" NEWLINE Expression+ NEWLINE "}"
 
+; An attribute is one or more rol=es or a places that the enclosed scope is
+; to be performed by or applied to.
+attributes := Attribute ("+" Attribute)*
 Attribute := role_attribute | place_attribute
-role_attribute := "@" Identifier ("+" "@" Identifier)*
-place_attribute := "#" Identifier
+role_attribute := "@" Identifier
+place_attribute := "^" Identifier
 
 response_block := Response ("|" Response)*
 Response := "'" response_value "'" response_condition?

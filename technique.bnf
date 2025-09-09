@@ -132,7 +132,7 @@ uncertainty := ("±" | "+/-") [0-9]+([.][0-9]+)?
 magnitude := ("x" | "*" | "×") "10" ( "^" [0-9]+ | [⁰⁻⁹] )
 symbol := [a-zA-Z/°]+
 
-Scope := step_block | code_block | Attribute | section_chunk | response_block
+Scope := step_block | code_block | attribute_block | section_chunk | response_block
 
 step_block := dependent_step+ | parallel_step+
 
@@ -141,7 +141,7 @@ dependent_step := [1-9][0-9]*[.][ ] Descriptive+ (dependent_substep+ | parallel_
 ; Parallel substeps can not nest within parallel steps because there is no way
 ; for a parser to differentiate between the two levels (given the language is
 ; not indentation sensitive).
-parallel_step := [-][ ] Descriptive+ (dependent_substep+ | code_block | Attribute )?
+parallel_step := [-][ ] Descriptive+ (dependent_substep+ | code_block | attribute_block )?
 
 dependent_substep := [a-hj-km-uwyz][.][ ] Descriptive+ (dependent_subsubstep+ | parallel_subsubstep+ | Scope)?
 
@@ -155,8 +155,10 @@ parallel_subsubstep := [-][ ] Descriptive+ | Scope?
 ; textual language to being able to write expressions.
 code_block := "{" NEWLINE Expression+ NEWLINE "}"
 
-; An attribute is one or more rol=es or a places that the enclosed scope is
+; An attribute is one or more roles or a places that the enclosed scope is
 ; to be performed by or applied to.
+attribute_block := attributes (NEWLINE Scope)?
+
 attributes := Attribute ("+" Attribute)*
 Attribute := role_attribute | place_attribute
 role_attribute := "@" Identifier

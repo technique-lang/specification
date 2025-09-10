@@ -161,8 +161,8 @@ attribute_block := attributes (NEWLINE Scope)?
 
 attributes := Attribute ("+" Attribute)*
 Attribute := role_attribute | place_attribute
-role_attribute := "@" Identifier
-place_attribute := "^" Identifier
+role_attribute := "@" Identifier | "@*"
+place_attribute := "^" Identifier | "^*"
 
 response_block := Response ("|" Response)*
 Response := "'" response_value "'" response_condition?

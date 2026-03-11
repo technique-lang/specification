@@ -27,8 +27,8 @@ Document := Metadata? Technique?
 
 ; If present, the document metadata are the magic bytes, followed by an
 ; optional statement of license and copyright, and an optional indication of
-; what template is intended for rendering this technique.
-Metadata := magic_line spdx_line? template_line?
+; what domain use case is intended when rendering this technique.
+Metadata := magic_line spdx_line? domain_line?
 
 magic_line := "%" "technique" "v1" NEWLINE
 
@@ -36,7 +36,7 @@ spdx_line := "!" license copyright? NEWLINE
 license := [a-zA-Z0-9.,-_ ()[]]+
 copyright := ";" ("©" | "(c)" | "(C)") ANY NEWLINE
 
-template_line := "&" [a-zA-Z0-9.,-]+ NEWLINE
+domain_line := "&" [a-zA-Z0-9.,-]+ NEWLINE
 
 ; A technique is either a series of steps, or a procedure (which of course
 ; can and usually does contain steps).

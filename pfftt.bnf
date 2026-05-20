@@ -56,11 +56,19 @@ Identifier := [a-z][a-z0-9_]*
 
 uri := ("https://" | "file:///") [a-zA-Z0-9.,?&#%=:/+-~_]+
 
-Path :=
-    absolute
-    relative
+; the "fully qualified" path of a step. There are implicit nodes (when no
+; top-level procedure is defined, for example, and for the case where actions
+; are defined in the description of a procedure). The following are all valid
+; paths:
+;
+; /
+; /2
+; /2/a/-1
+; /local_network:
+; /local_network:2
+; /local_network:2/a/-1
 
-absolute := "/"
+Path := "/" procedure? ( component ( "/" component )* )?
 
 relative := procedure? component ( "/" component )*
 

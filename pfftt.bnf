@@ -70,9 +70,9 @@ uri := ("https://" | "file:///") [a-zA-Z0-9.,?&#%=:/+-~_]+
 
 Path := "/" procedure? ( component ( "/" component )* )?
 
-relative := procedure? component ( "/" component )*
+procedure := Identifier ":"
 
-component := section | step | substep | subsubstep | attribute | invocation | execution
+component := section | step | substep | subsubstep | attribute
 
 section := [IVX]+
 
@@ -92,23 +92,27 @@ attribute := role_attribute | place_attribute
 role_attribute := "@" Identifier | "@*"
 place_attribute := "^" Identifier | "^*"
 
-invocation := procedure | uri
-procedure := Identifier ":"
-
-execution :=  Identifier "()"
-
 ; Activity verbs and payloads, collectively the event being observed. Done is
-; the most important, recording an outcome of a step.
+; the most important, recording an outcome of a step. Invoke marks dispatch
+; from the current procedure into another (the return is implicit — the next
+; event's Path reveals the resumed procedure). Execute records a function
+; call out to the host environment.
 
 State :=
     "Start" SPACE uri |
     "Pause" |
     "Resume" |
+    "Invoke" SPACE invocable |
+    "Execute" SPACE executable |
     "Done" SPACE Value |
     "Skip" |
     "Fail" (SPACE Value)?
 
 RunId := [0-9]+
+
+invocable := procedure | uri
+
+executable :=  Identifier "()"
 
 Value := unit | tablet
 

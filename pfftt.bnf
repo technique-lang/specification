@@ -1,0 +1,110 @@
+; A grammar for the Procedure interchange Format For Transferring Techniques.
+; This format is carefully defined to simplify parsing. Whitespace only
+; appears when defined.
+;
+; This is written in the style of a Backus–Naur Form with a few augmentations.
+; When specified, character classes are in the style of those accepted by
+; regular expressions, such as [a-z]. Explicitly required characters such as
+; spaces are marked with [ ]; a [.] represents a period and not any character.
+; Otherwise special characters in regular expressions are not shown escaped.
+;
+; The convention adopted here is that names that represent actual types in the
+; abstract syntax tree are in Proper Case whereas other definitions (often
+; representing variants in enumerations in the implementation) are written in
+; snake_case.
+
+NEWLINE := "\n" | "\r\n"
+
+; A single space character is the separator between fields
+SPACE := " "
+
+; Specially defined as any characters but matching lazily, such that whatever
+; token or pattern that follows is excluded.
+ANY
+
+; A PFFTT file is a series of record lines.
+
+File := Record*
+
+Record :=
+    Timestamp
+    SPACE
+    Path
+    SPACE
+    State
+    NEWLINE
+
+; ISO 8601 timestamp
+Timestamp := year '-' month '-' day 'T' hour ':' minute ':' second ('.' fraction)? 'Z'
+
+year := [12][0-9][0-9][0-9]
+month := [0-1][0-9]
+day := [0-9][0-9]
+
+hour := [0-2][0-9]
+minute := [0-5][0-9]
+second := [0-5][0-9]
+
+; Optional fractions of a second can be to arbitrary precision, but in
+; practice this is either milliseconds (three digits) or nanoseconds (nine
+; digits).
+fraction := [0-9]*
+
+Identifier := [a-z][a-z0-9_]*
+
+uri := ("https://" | "file:///") [a-zA-Z0-9.,?&#%=:/+-~_]+
+
+Path :=
+    absolute
+    relative
+
+absolute := "/"
+
+relative := procedure? component ( "/" component )*
+
+component := section | step | substep | subsubstep | attribute | invocation | execution
+
+section := [IVX]+
+
+step := dependent_step | parallel_step
+dependent_step := [1-9][0-9]*
+parallel_step := [-]([0-9]|[1-9][0-9])
+
+substep := dependent_substep | parallel_substep
+dependent_substep := [a-hj-km-uwyz]
+parallel_substep := [-]([0-9]|[1-9][0-9])
+
+subsubstep := dependent_subsubstep | parallel_subsubstep
+dependent_subsubstep := [ivxl]+
+parallel_subsubstep := [-]([0-9]|[1-9][0-9])
+
+attribute := role_attribute | place_attribute
+role_attribute := "@" Identifier | "@*"
+place_attribute := "^" Identifier | "^*"
+
+invocation := procedure | uri
+procedure := Identifier ":"
+
+execution :=  Identifier "()"
+
+; Activity verbs and payloads, collectively the event being observed. Done is
+; the most important, recording an outcome of a step.
+
+State :=
+    "Start" SPACE uri run_id |
+    "Pause" |
+    "Resume" SPACE run_id |
+    "Done" SPACE Value |
+    "Skip" |
+    "Fail" (SPACE Value)?
+
+run_id := ":" [0-9]+
+
+Value := unit | tablet
+
+unit := "()"
+
+; The Tablet data structure in Technique can nest arbitrarily but this runs
+; to end of line so any content here is acceptable.
+
+tablet := "[" ANY "]"

@@ -93,10 +93,12 @@ role_attribute := "@" Identifier | "@*"
 place_attribute := "^" Identifier | "^*"
 
 ; Activity verbs and payloads, collectively the event being observed. Done is
-; the most important, recording an outcome of a step. Invoke marks dispatch
-; from the current procedure into another (the return is implicit — the next
-; event's Path reveals the resumed procedure). Execute records a function
-; call out to the host environment.
+; the most important, recording an outcome of a step. Begin marks the start
+; of work on a step (paired with the eventual Done/Skip/Fail); duration is
+; derived from the pair. Invoke marks dispatch from the current procedure
+; into another (the return is implicit — the next event's Path reveals the
+; resumed procedure). Execute records a function call out to the host
+; environment.
 
 State :=
     "Start" SPACE uri |
@@ -104,6 +106,7 @@ State :=
     "Resume" |
     "Invoke" SPACE invocable |
     "Execute" SPACE executable |
+    "Begin" |
     "Done" SPACE Value |
     "Skip" |
     "Fail" (SPACE Value)?

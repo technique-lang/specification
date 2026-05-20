@@ -9,7 +9,7 @@
 ; Otherwise special characters in regular expressions are not shown escaped.
 ;
 ; The convention adopted here is that names that represent actual types in the
-; abstract syntax tree are in Proper Case whereas other definitions (often
+; parser are in Proper Case whereas other definitions (often
 ; representing variants in enumerations in the implementation) are written in
 ; snake_case.
 
@@ -28,6 +28,8 @@ File := Record*
 
 Record :=
     Timestamp
+    SPACE
+    RunId
     SPACE
     Path
     SPACE
@@ -91,14 +93,14 @@ execution :=  Identifier "()"
 ; the most important, recording an outcome of a step.
 
 State :=
-    "Start" SPACE uri run_id |
+    "Start" SPACE uri |
     "Pause" |
-    "Resume" SPACE run_id |
+    "Resume" |
     "Done" SPACE Value |
     "Skip" |
     "Fail" (SPACE Value)?
 
-run_id := ":" [0-9]+
+RunId := [0-9]+
 
 Value := unit | tablet
 

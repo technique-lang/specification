@@ -169,6 +169,9 @@ Response := "'" response_value "'" response_condition?
 response_value := ANY
 response_condition :=  ANY
 
+; Technique has lists (homogenous lists of values of a single type) and
+; tablets (a series of key/value pairs of "label" and an expression). Both are
+; delimited by brackets. Elements can be separated by commas or newlines.
 list_structure := "[" (list_element (list_separator list_element)*)? "]"
 list_element := Pair | Expression
 list_separator := ("," | NEWLINE)

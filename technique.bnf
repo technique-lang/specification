@@ -92,7 +92,7 @@ Expression :=
     foreach_keyword |
     repeat_keyword |
     expression_binding |
-    tablet
+    list_structure
 
 Invocation := "<" invocation_target ">" ("(" arguments? ")")?
 
@@ -169,7 +169,9 @@ Response := "'" response_value "'" response_condition?
 response_value := ANY
 response_condition :=  ANY
 
-tablet := "[" Pair (NEWLINE Pair)* "]"
+list_structure := "[" (list_element (list_separator list_element)*)? "]"
+list_element := Pair | Expression
+list_separator := ("," | NEWLINE)
 
 Pair := Label "=" Expression
 

@@ -111,7 +111,7 @@ Invocation := "<" invocation_target ">" ("(" arguments? ")")?
 
 invocation_target := local_target | external_target
 local_target := Identifier
-external_target := "https://" [a-zA-Z0-9.,?&#%=:/-_]+
+external_target := ("https" | "http" | "file") ":" [a-zA-Z0-9.,?&#%=:/-_]+
 
 ; A function call, usually to a built-in.
 Application := function_name "(" arguments? ")"
